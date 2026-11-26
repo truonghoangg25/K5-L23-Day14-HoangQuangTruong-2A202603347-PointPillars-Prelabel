@@ -20,11 +20,9 @@ Ghi **trước** khi chạy `scripts/pp_sweep.py`, rồi commit và push ngay (l
 | `best_config.json` | 20 | 1 | 0 | 7.0 |
 
 - Prediction: 118 cuboid; reference: 99 cuboid.
-- Đã thử 15 cấu hình.
-- Tham số đã đổi so với baseline: không có. `score_thr=0.1`, `min_points=0`; cấu hình 0.2/0 đồng hạng.
-- Chọn cấu hình có chi phí nhỏ nhất theo kết quả sweep.
+- Sweep 15 cấu hình. Cấu hình được chọn: `score_thr=0.1`, `min_points=0`; không thay đổi so với baseline. Cấu hình 0.2/0 đồng hạng.
 
-### Leave-one-out (tính từ sweep.csv)
+### Leave-one-out (tính lại từ sweep.csv)
 
 | Holdout | score_thr | min_points | Train cost | Holdout cost | Oracle cost |
 |---|---:|---:|---:|---:|---:|
@@ -32,15 +30,9 @@ Ghi **trước** khi chạy `scripts/pp_sweep.py`, rồi commit và push ngay (l
 | s03f52 | 0.1 | 0 | 6.4 | 0.6 | 0.6 |
 | s05f19 | 0.1 | 0 | 7.0 | 0.0 | 0.0 |
 
-Cả ba lượt chọn 0.1/0 nếu ưu tiên ngưỡng nhỏ hơn khi đồng hạng; chi phí holdout bằng oracle. Tập A chỉ gồm 3 frame.
+Cả ba lượt có cấu hình 0.1/0 đạt chi phí train thấp nhất và chi phí holdout bằng oracle; 0.2/0 đồng hạng. Đây là thống kê trên ba frame, không phải bằng chứng tổng quát hóa.
 
-## 3. Trước/sau (bước 8)
-
-![s01f42](../../d14_347/compare/s01f42.jpg)
-
-![s03f52](../../d14_347/compare/s03f52.jpg)
-
-![s05f19](../../d14_347/compare/s05f19.jpg)
+### Bảng sweep
 
 | score_thr | min_points | Xóa | Thêm | Sửa | Chi phí |
 |---:|---:|---:|---:|---:|---:|
@@ -60,16 +52,23 @@ Cả ba lượt chọn 0.1/0 nếu ưu tiên ngưỡng nhỏ hơn khi đồng h�
 | 0.5 | 5 | 4 | 54 | 0 | 55.2 |
 | 0.5 | 10 | 4 | 54 | 0 | 55.2 |
 
-- Chi phí baseline: 7.0; chi phí tối ưu: 7.0; mức giảm: 0%.
-- Cấu hình 0.5/10: xóa 4, thêm 54, sửa 0; chi phí 55.2.
+## 3. Trước/sau (bước 8)
 
-**Kết luận đối chiếu dự đoán 5b của học viên:** chưa bổ sung.
+![s01f42](../../d14_347/compare/s01f42.jpg)
+
+![s03f52](../../d14_347/compare/s03f52.jpg)
+
+![s05f19](../../d14_347/compare/s05f19.jpg)
+
+- Chi phí baseline và cấu hình được chọn: 7.0.
+- Mức giảm chi phí: 0%.
+- Số liệu đối chiếu: ở cấu hình 0.5/10, số box cần xóa là 4 thay vì 20; số box cần thêm là 54 thay vì 1; chi phí là 55.2 thay vì 7.0.
+
+**Kết luận đối chiếu cá nhân:** chưa bổ sung.
 
 ## 4. Tập B
 
-Số đo từ `scripts/pp_prelabel.py --frames d14_347/frames_B.txt --config d14_347/best_config.json --gt d14_347/ref_B.json` (với đường dẫn Data-VF thực tế):
-
-- 12 frame, 356 box dự đoán, 184 box tham chiếu hiện tại, 184 box khớp.
+Kết quả của lệnh đo ở bước 9 trên reference hiện tại: 12 frame, 356 prediction, 184 reference, 184 box khớp.
 
 | Xóa | Thêm | Sửa | Chi phí |
 |---:|---:|---:|---:|
@@ -99,15 +98,29 @@ Số đo từ `scripts/pp_prelabel.py --frames d14_347/frames_B.txt --config d14
 | Cyclist | 80 | 21 | 59 |
 | Pedestrian | 20 | 6 | 14 |
 
-- Car có số box bị xóa nhiều nhất (99); Cyclist có tỷ lệ xóa cao nhất (73.75%).
-- Chi phí trung bình: 4.3/frame.
-- Công cụ hỗ trợ: AI rà soát ảnh chiếu và LiDAR; CVAT SDK sao lưu và áp dụng đề xuất xóa 172 box nghi vấn.
-- Reference B hiện tại chỉ phản ánh kết quả sàng lọc: 184 box còn lại giữ nguyên hình học và lớp của prediction, chưa xác nhận kiểm tra thủ công toàn bộ. Chưa xác nhận đầy đủ đối tượng bị sót, hướng, kích thước, đáy và thuộc tính occluded.
-- Các nghi vấn cần kiểm tra theo guideline: s01f03 pp_id 11 (UNCERTAIN_CLASS, xe tải/xe con bị che), s01f19 pp_id 9 và 12 (LOW_VISIBILITY/ATTRIBUTE_CHECK, vùng xe khuất cạnh xe buýt), s02f10 pp_id 2 và 12 (UNCERTAIN_CLASS, van và người cạnh xe đạp). Đây là đề xuất QA, chưa phải kết luận gán nhãn.
+Car có số box bị xóa lớn nhất (99); Cyclist có tỷ lệ xóa cao nhất (73.75%). Chi phí trung bình 4.3/frame.
+
+### Công cụ hỗ trợ và trạng thái QA
+
+Đã dùng ChatGPT để phân tích ảnh chiếu camera và thống kê điểm LiDAR, dùng script Python/CVAT SDK để sao lưu và xóa 172 box theo đề xuất QA. Đã xuất nhãn bằng script chính thức của lab. Các số đo trên phản ánh reference hiện tại, không phải ground truth độc lập. Chưa xác nhận kiểm tra thủ công đầy đủ; chưa thêm box sót hoặc chỉnh hình học trong tập B.
+
+### Nghi vấn chưa được xác nhận (theo mục 4 guideline)
+
+| Frame | Vị trí (pp_id của prediction) | Loại nghi vấn | Mô tả |
+|---|---|---|---|
+| s01f03 | 11 | UNCERTAIN_CLASS | Vùng chiếu xe tải hộp trắng; phân biệt xe tải và xe con bị che. |
+| s01f19 | 9, 12 | ATTRIBUTE_CHECK | Vùng xe bị che cạnh xe buýt; chưa xác nhận vật thể và cờ occluded. |
+| s01f34 | 33 | UNCERTAIN_CLASS | Người cạnh xe/cột; kiểm tra đi bộ, dắt xe hay đang lái. |
+| s02f10 | 2 | UNCERTAIN_CLASS | Van xanh: xe hàng hay xe chở người. |
+| s02f10 | 12 | UNCERTAIN_CLASS | Người cạnh xe đạp: đang lái hay dắt xe. |
+| s04f28 | 17 | UNCERTAIN_CLASS | Cyclist có kích thước dài bất thường; cần đối chiếu camera và point cloud. |
+
+Các mục này là nghi vấn từ QA tự động, không phải lỗi đã được người gán nhãn xác nhận. Chưa đánh dấu đã hỏi coach.
 
 ## 5. Giới hạn
 
-- Tập A chỉ có 3 frame, chưa đủ đại diện cho các điều kiện khác nhau.
-- PointPillars huấn luyện trên KITTI không trực tiếp nhận diện Truck và Bus theo taxonomy của lab; việc đổi lớp dựa vào luật kích thước có thể sai.
-- Chi phí sửa là công thức quy đổi, không phải thời gian sửa thực tế.
-- Reference hiện tại chưa được kiểm chứng độc lập đầy đủ; không dùng chi phí này để khẳng định độ chính xác của model.
+- Tập A chỉ gồm 3 frame; chưa đủ đại diện cho toàn bộ dữ liệu.
+- Model huấn luyện trên KITTI có 3 lớp trực tiếp; Truck và Bus phụ thuộc luật hậu xử lý kích thước.
+- Chi phí sửa là công thức quy đổi, không phải thời gian chỉnh sửa thực tế.
+- Reference hiện tại phụ thuộc chất lượng kiểm tra nhãn; không dùng kết quả đo để khẳng định độ chính xác với ground truth độc lập.
+- Tập B còn cần xác minh vật thể bị sót, lớp, độ khít, yaw, đáy và occluded theo guideline.
