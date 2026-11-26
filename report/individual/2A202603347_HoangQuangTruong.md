@@ -12,21 +12,19 @@ Ghi **trước** khi chạy `scripts/pp_sweep.py`, rồi commit và push ngay (l
 - Tham số tôi nghĩ giảm công sửa nhiều nhất: Kết hợp tăng cả score_thr và min_points.
 - Vì sao (nhìn ảnh BEV tập A: box thừa nhiều hay box sót nhiều?): Tôi cho rằng kết hợp hai tham số sẽ giúp giữ lại các dự đoán rõ ràng và đáng tin cậy hơn, từ đó dễ kiểm tra đối tượng và giảm công sửa nhãn.
 
-## 2. T?p A: s?a tay v? tune
+## 2. Tập A: sửa tay và tune
 
-| C?u h?nh | X?a | Th?m | S?a | Chi ph? |
+| Cấu hình | Xóa | Thêm | Sửa | Chi phí |
 |---|---:|---:|---:|---:|
-| G?c | 20 | 1 | 0 | 7.0 |
-| best_config.json | 20 | 1 | 0 | 7.0 |
+| Gốc | 20 | 1 | 0 | 7.0 |
+| `best_config.json` | 20 | 1 | 0 | 7.0 |
 
-- T?ng prediction: 118 cuboid.
-- T?ng reference: 99 cuboid.
-- ?? th? 15 c?u h?nh.
-- C?u h?nh t?i ?u: `score_thr=0.1`, `min_points=0`.
-- Kh?ng thay ??i tham s? so v?i baseline.
-- C?u h?nh 0.2/0 c?ng ??t chi ph? 7.0.
+- Prediction: 118 cuboid; reference: 99 cuboid.
+- Đã thử 15 cấu hình.
+- Tham số đã đổi so với baseline: không có. `score_thr=0.1`, `min_points=0`; cấu hình 0.2/0 đồng hạng.
+- Chọn cấu hình có chi phí nhỏ nhất theo kết quả sweep.
 
-### Leave-one-out
+### Leave-one-out (tính từ sweep.csv)
 
 | Holdout | score_thr | min_points | Train cost | Holdout cost | Oracle cost |
 |---|---:|---:|---:|---:|---:|
@@ -34,15 +32,9 @@ Ghi **trước** khi chạy `scripts/pp_sweep.py`, rồi commit và push ngay (l
 | s03f52 | 0.1 | 0 | 6.4 | 0.6 | 0.6 |
 | s05f19 | 0.1 | 0 | 7.0 | 0.0 | 0.0 |
 
-### Nh?n x?t s? li?u c? h? tr? AI
+Cả ba lượt chọn 0.1/0 nếu ưu tiên ngưỡng nhỏ hơn khi đồng hạng; chi phí holdout bằng oracle. Tập A chỉ gồm 3 frame.
 
-C?u h?nh g?c ??t chi ph? th?p nh?t trong c? ba l??t
-leave-one-out khi ch?n ng??ng nh? h?n trong tr??ng h?p
-??ng h?ng. Chi ph? holdout b?ng chi ph? oracle.
-Tuy nhi?n, t?p A ch? g?m 3 frame n?n ch?a ?? c?n c?
-?? kh?ng ??nh kh? n?ng t?ng qu?t h?a.
-
-## 3. Tr??c/sau (b??c 8)
+## 3. Trước/sau (bước 8)
 
 ![s01f42](../../d14_347/compare/s01f42.jpg)
 
@@ -50,7 +42,7 @@ Tuy nhi?n, t?p A ch? g?m 3 frame n?n ch?a ?? c?n c?
 
 ![s05f19](../../d14_347/compare/s05f19.jpg)
 
-| score_thr | min_points | X?a | Th?m | S?a | Chi ph? |
+| score_thr | min_points | Xóa | Thêm | Sửa | Chi phí |
 |---:|---:|---:|---:|---:|---:|
 | 0.1 | 0 | 20 | 1 | 0 | 7.0 |
 | 0.2 | 0 | 20 | 1 | 0 | 7.0 |
@@ -68,35 +60,22 @@ Tuy nhi?n, t?p A ch? g?m 3 frame n?n ch?a ?? c?n c?
 | 0.5 | 5 | 4 | 54 | 0 | 55.2 |
 | 0.5 | 10 | 4 | 54 | 0 | 55.2 |
 
+- Chi phí baseline: 7.0; chi phí tối ưu: 7.0; mức giảm: 0%.
+- Cấu hình 0.5/10: xóa 4, thêm 54, sửa 0; chi phí 55.2.
 
-- Chi ph? baseline: 7.0.
-- Chi ph? t?i ?u: 7.0.
-- M?c gi?m chi ph?: 0%.
+**Kết luận đối chiếu dự đoán 5b của học viên:** chưa bổ sung.
 
-### ??i chi?u s? li?u c? h? tr? AI
+## 4. Tập B
 
-K?t qu? sweep kh?ng ?ng h? d? ?o?n ban ??u r?ng
-t?ng ??ng th?i score_thr v? min_points s? gi?m c?ng s?a.
-? c?u h?nh 0.5/10, s? box c?n x?a gi?m t? 20 xu?ng 4,
-nh?ng s? box c?n th?m t?ng t? 1 l?n 54.
-Chi ph? t?ng t? 7.0 l?n 55.2.
+Số đo từ `scripts/pp_prelabel.py --frames d14_347/frames_B.txt --config d14_347/best_config.json --gt d14_347/ref_B.json` (với đường dẫn Data-VF thực tế):
 
-K?t lu?n c? nh?n c?a h?c vi?n: ch?a b? sung.
+- 12 frame, 356 box dự đoán, 184 box tham chiếu hiện tại, 184 box khớp.
 
-## 4. T?p B
-
-- S? frame: 12.
-- Prediction: 356 cuboid.
-- Reference xu?t t? CVAT: 184 cuboid.
-- S? box kh?p: 184.
-
-| X?a | Th?m | S?a | Chi ph? |
+| Xóa | Thêm | Sửa | Chi phí |
 |---:|---:|---:|---:|
 | 172 | 0 | 0 | 51.6 |
 
-### K?t qu? t?ng frame
-
-| Frame | Prediction | Reference | X?a | Chi ph? |
+| Frame | Prediction | Reference | Xóa | Chi phí |
 |---|---:|---:|---:|---:|
 | s01f03 | 29 | 20 | 9 | 2.7 |
 | s01f19 | 28 | 14 | 14 | 4.2 |
@@ -110,12 +89,9 @@ K?t lu?n c? nh?n c?a h?c vi?n: ch?a b? sung.
 | s04f07 | 26 | 19 | 7 | 2.1 |
 | s04f28 | 20 | 18 | 2 | 0.6 |
 | s04f49 | 20 | 13 | 7 | 2.1 |
-| T?ng | 356 | 184 | 172 | 51.6 |
+| Tổng | 356 | 184 | 172 | 51.6 |
 
-
-### Th?ng k? theo l?p
-
-| L?p | Prediction | Reference | X?a |
+| Lớp | Prediction | Reference | Xóa |
 |---|---:|---:|---:|
 | Car | 256 | 157 | 99 |
 | Truck | 0 | 0 | 0 |
@@ -123,22 +99,15 @@ K?t lu?n c? nh?n c?a h?c vi?n: ch?a b? sung.
 | Cyclist | 80 | 21 | 59 |
 | Pedestrian | 20 | 6 | 14 |
 
+- Car có số box bị xóa nhiều nhất (99); Cyclist có tỷ lệ xóa cao nhất (73.75%).
+- Chi phí trung bình: 4.3/frame.
+- Công cụ hỗ trợ: AI rà soát ảnh chiếu và LiDAR; CVAT SDK sao lưu và áp dụng đề xuất xóa 172 box nghi vấn.
+- Reference B hiện tại chỉ phản ánh kết quả sàng lọc: 184 box còn lại giữ nguyên hình học và lớp của prediction, chưa xác nhận kiểm tra thủ công toàn bộ. Chưa xác nhận đầy đủ đối tượng bị sót, hướng, kích thước, đáy và thuộc tính occluded.
+- Các nghi vấn cần kiểm tra theo guideline: s01f03 pp_id 11 (UNCERTAIN_CLASS, xe tải/xe con bị che), s01f19 pp_id 9 và 12 (LOW_VISIBILITY/ATTRIBUTE_CHECK, vùng xe khuất cạnh xe buýt), s02f10 pp_id 2 và 12 (UNCERTAIN_CLASS, van và người cạnh xe đạp). Đây là đề xuất QA, chưa phải kết luận gán nhãn.
 
-- Car c? s? box b? x?a l?n nh?t: 99.
-- Cyclist c? t? l? b? x?a cao nh?t: 73.75%.
-- Chi ph? trung b?nh: 4.3/frame.
-- S? d?ng QA h? tr? AI v? CVAT SDK ?? ph?n t?ch,
-  sao l?u v? lo?i b? 172 cuboid nghi v?n.
-- Ch?a x?c nh?n vi?c ki?m tra th? c?ng ??y ?? t?p B.
+## 5. Giới hạn
 
-## 5. Gi?i h?n
-
-1. T?p A ch? c? 3 frame, ch?a ?? ??i di?n cho to?n b? d? li?u.
-2. PointPillars hu?n luy?n tr?n KITTI kh?ng tr?c ti?p
-   nh?n di?n ??y ?? Truck v? Bus theo taxonomy c?a lab.
-3. Chi ph? s?a l? c?ng th?c quy ??i, kh?ng ph?i th?i gian
-   ch?nh s?a th?c t?.
-4. T?ng ng??ng confidence c? th? lo?i b? ??i t??ng th?t.
-5. Reference B ???c t?o v?i h? tr? QA t? ??ng,
-   ch?a ???c x?c minh ??c l?p ??y ?? v? ??i t??ng b? s?t,
-   class, yaw v? h?nh h?c cuboid.
+- Tập A chỉ có 3 frame, chưa đủ đại diện cho các điều kiện khác nhau.
+- PointPillars huấn luyện trên KITTI không trực tiếp nhận diện Truck và Bus theo taxonomy của lab; việc đổi lớp dựa vào luật kích thước có thể sai.
+- Chi phí sửa là công thức quy đổi, không phải thời gian sửa thực tế.
+- Reference hiện tại chưa được kiểm chứng độc lập đầy đủ; không dùng chi phí này để khẳng định độ chính xác của model.
